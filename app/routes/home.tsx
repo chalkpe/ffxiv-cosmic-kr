@@ -81,7 +81,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <Toaster />
       <div className="w-full py-10 gap-28 flex flex-col justify-center items-center">
         <Logo updatedAt={servers.reduce((latest, { updatedAt }) => (updatedAt > latest ? updatedAt : latest), new Date(0))} />
-        <section className="mx-auto container flex flex-row flex-wrap gap-5 justify-center items-center">
+        <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-5 justify-center items-center">
           {servers.map((server) => (
             <article key={server.world} className="p-5 rounded bg-[#0C1826] w-64 flex flex-col gap-8">
               <div className="flex flex-row justify-between items-start">
@@ -114,9 +114,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </section>
       </div>
       <div className="w-full bg-[#0C1826] py-10">
-        <section className="mx-auto container flex flex-row flex-wrap gap-5 justify-center items-center">
+        <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-5 justify-center items-center">
           {servers.map((server) => (
-            <article key={server.world} className="p-5 rounded w-64 flex flex-col gap-4">
+            <article key={server.world} className="p-5 sm:p-0 rounded w-full sm:w-64 flex flex-col gap-4">
               <fetcher.Form
                 method="post"
                 ref={(el) => {
@@ -154,10 +154,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           ))}
         </section>
       </div>
-      <footer className="w-full py-10">
-        <section className="mx-auto container flex flex-col justify-center items-center text-center gap-1">
-          <span className="text-[#9496A0] text-lg">이 프로젝트는 스퀘어 에닉스와 아무런 관련이 없습니다.</span>
-          <span className="text-[#9496A0] text-lg">
+      <footer className="w-full px-5 py-10">
+        <section className="mx-auto container flex flex-col justify-center items-center text-center gap-2 text-[#9496A0] text-lg text-balance break-keep">
+          <span>이 프로젝트는 스퀘어 에닉스와 아무런 관련이 없습니다.</span>
+          <span>
             문의 및 버그 제보는{' '}
             <a href="https://github.com/chalkpe" className="font-bold underline">
               깃허브
