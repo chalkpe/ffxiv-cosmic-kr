@@ -11,4 +11,6 @@ export type EventData = {
 }[keyof EventPayloadMap]
 
 export const emitter = new EventEmitter()
+emitter.setMaxListeners(Infinity)
+
 export const dispatch = (data: EventData) => emitter.emit('data', data)
