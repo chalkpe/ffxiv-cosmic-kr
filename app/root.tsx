@@ -11,6 +11,29 @@ export const links: Route.LinksFunction = () => [
   { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap' },
 ]
 
+const title = '월면 공동계획'
+const description = '한국서버 파판14 우주개척 진행도'
+const url = 'https://cosmic.chalk.moe'
+
+export const meta: Route.MetaFunction = () => [
+  { title },
+  { name: 'description', content: description },
+  { name: 'fediverse:creator', content: '@chalk@chalk.moe' },
+  { name: 'apple-mobile-web-app-capable', content: 'yes' },
+  { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+  { name: 'twitter:card', content: 'summary_large_image' },
+  { name: 'twitter:title', content: title },
+  { name: 'twitter:description', content: description },
+  { name: 'twitter:image:src', content: `${url}/card.png` },
+  { property: 'og:type', content: 'website' },
+  { property: 'og:title', content: title },
+  { property: 'og:site_name', content: title },
+  { property: 'og:description', content: description },
+  { property: 'og:url', content: url },
+  { property: 'og:image', content: `${url}/card.png` },
+  { property: 'og:image:alt', content: title },
+]
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">

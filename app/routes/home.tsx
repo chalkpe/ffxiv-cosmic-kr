@@ -14,10 +14,6 @@ import { useEvent } from '~/hooks/use-event'
 import { Toaster } from '~/components/ui/sonner'
 import { toast } from 'sonner'
 
-export function meta({}: Route.MetaArgs) {
-  return [{ title: '월면 공동계획' }, { name: 'description', content: 'TODO: 설명' }]
-}
-
 export async function loader({}: Route.LoaderArgs) {
   const worlds = Object.values(World)
   const servers = await prisma.server.findMany()
