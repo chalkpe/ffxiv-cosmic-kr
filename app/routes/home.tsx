@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { Route } from './+types/home'
 import { Logo } from '../components/logo/logo'
 import { Progress } from '~/components/server/progress'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { Input } from '~/components/ui/input'
 import { prisma, World } from '~/lib/prisma.server'
@@ -33,6 +33,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   const revalidator = useRevalidator()
   const fetcher = useFetcher<typeof action>()
+
+  const search = useMemo(() => new URLSearchParams(window.location.search), [])
 
   const formRef = useRef<Record<World, HTMLFormElement | null>>({
     KrCarbuncle: null,
@@ -84,7 +86,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Progress
                   progress={server.progress}
                   max={20}
-                  disabled={fetcher.state !== 'idle'}
+                  disabled={!search.has('admin') || fetcher.state !== 'idle'}
                   onChange={(v) => fetcher.submit({ progress: v.toString(), server: server.world }, { method: 'post' })}
                 >
                   현재 단계
@@ -92,7 +94,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Progress
                   progress={server.subprogress}
                   max={8}
-                  disabled={fetcher.state !== 'idle'}
+                  disabled={!search.has('admin') || fetcher.state !== 'idle'}
                   onChange={(v) => fetcher.submit({ subprogress: v.toString(), server: server.world }, { method: 'post' })}
                 >
                   세부 단계
