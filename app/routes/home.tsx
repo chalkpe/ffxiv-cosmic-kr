@@ -9,7 +9,7 @@ import { prisma, World } from '~/lib/prisma.server'
 import { commentCount, worldNames } from '~/lib/constants'
 import { UpdatedAt } from '~/components/updated-at'
 import { dispatch, getRecentComments, type EventPayloadMap } from '~/lib/data.server'
-import { useFetcher, useRevalidator } from 'react-router'
+import { useFetcher, useRevalidator, useSearchParams } from 'react-router'
 import { useEvent } from '~/hooks/use-event'
 import { Toaster } from '~/components/ui/sonner'
 import { toast } from 'sonner'
@@ -34,7 +34,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const revalidator = useRevalidator()
   const fetcher = useFetcher<typeof action>()
 
-  const search = useMemo(() => new URLSearchParams(window.location.search), [])
+  const [searchParams] = useSearchParams()
 
   const formRef = useRef<Record<World, HTMLFormElement | null>>({
     KrCarbuncle: null,
@@ -86,7 +86,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Progress
                   progress={server.progress}
                   max={20}
-                  disabled={!search.has('admin') || fetcher.state !== 'idle'}
+                  disabled={!searchParams.has('admin') || fetcher.state !== 'idle'}
                   onChange={(v) => fetcher.submit({ progress: v.toString(), server: server.world }, { method: 'post' })}
                 >
                   현재 단계
@@ -94,7 +94,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Progress
                   progress={server.subprogress}
                   max={8}
-                  disabled={!search.has('admin') || fetcher.state !== 'idle'}
+                  disabled={!searchParams.has('admin') || fetcher.state !== 'idle'}
                   onChange={(v) => fetcher.submit({ subprogress: v.toString(), server: server.world }, { method: 'post' })}
                 >
                   세부 단계
