@@ -86,16 +86,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Progress
                   progress={server.progress}
                   max={20}
-                  disabled={!searchParams.has('admin') || fetcher.state !== 'idle'}
-                  onChange={(v) => fetcher.submit({ progress: v.toString(), server: server.world }, { method: 'post' })}
+                  disabled={!searchParams.has('secret') || fetcher.state !== 'idle'}
+                  onChange={(v) =>
+                    fetcher.submit({ progress: v.toString(), server: server.world, secret: searchParams.get('secret') }, { method: 'post' })
+                  }
                 >
                   현재 단계
                 </Progress>
                 <Progress
                   progress={server.subprogress}
                   max={8}
-                  disabled={!searchParams.has('admin') || fetcher.state !== 'idle'}
-                  onChange={(v) => fetcher.submit({ subprogress: v.toString(), server: server.world }, { method: 'post' })}
+                  disabled={!searchParams.has('secret') || fetcher.state !== 'idle'}
+                  onChange={(v) =>
+                    fetcher.submit(
+                      { subprogress: v.toString(), server: server.world, secret: searchParams.get('secret') },
+                      { method: 'post' },
+                    )
+                  }
                 >
                   세부 단계
                 </Progress>
@@ -114,9 +121,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   formRef.current[server.world] = el
                 }}
                 onSubmit={(e) => {
-                  if (sentAt && new Date().getTime() - sentAt.getTime() < 1000) {
+                  if (sentAt && new Date().getTime() - sentAt.getTime() < 10000) {
                     e.preventDefault()
-                    toast.error('1초에 한 번만 댓글을 작성할 수 있어요.')
+                    toast.error('10초에 한 번만 댓글을 작성할 수 있어요.')
                   }
                 }}
               >
@@ -187,6 +194,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (formData.has('progress')) {
+    if (formData.get('secret')?.toString() !== process.env.ADMIN_SECRET) return { id, ok: false }
+
     const p = formData.get('progress')?.toString()
     if (!p) return { id, ok: false }
 
@@ -204,6 +213,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (formData.has('subprogress')) {
+    if (formData.get('secret')?.toString() !== process.env.ADMIN_SECRET) return { id, ok: false }
+
     const s = formData.get('subprogress')?.toString()
     if (!s) return { id, ok: false }
 
