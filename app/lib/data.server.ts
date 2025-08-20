@@ -1,4 +1,6 @@
+import Queue from 'yocto-queue'
 import { EventEmitter } from 'node:events'
+import { commentCount } from '~/lib/constants'
 import type { World } from '~/generated/prisma/client'
 
 export type EventPayloadMap = {
@@ -11,6 +13,33 @@ export type EventData = {
 }[keyof EventPayloadMap]
 
 export const emitter = new EventEmitter()
-emitter.setMaxListeners(Infinity)
 
 export const dispatch = (data: EventData) => emitter.emit('data', data)
+
+const queueMap: Record<World, Queue<EventPayloadMap['ADD_COMMENT']>> = {
+  KrCarbuncle: new Queue(),
+  KrChocobo: new Queue(),
+  KrMoogle: new Queue(),
+  KrTonberry: new Queue(),
+  KrFenrir: new Queue(),
+}
+
+export const getRecentComments = () => ({
+  KrCarbuncle: [...queueMap.KrCarbuncle].reverse(),
+  KrChocobo: [...queueMap.KrChocobo].reverse(),
+  KrMoogle: [...queueMap.KrMoogle].reverse(),
+  KrTonberry: [...queueMap.KrTonberry].reverse(),
+  KrFenrir: [...queueMap.KrFenrir].reverse(),
+})
+
+emitter.setMaxListeners(Infinity)
+emitter.on('data', (data: EventData) => {
+  switch (data.type) {
+    case 'ADD_COMMENT': {
+      const queue = queueMap[data.payload.world]
+      queue.enqueue(data.payload)
+      while (queue.size > commentCount) queue.dequeue()
+      break
+    }
+  }
+})

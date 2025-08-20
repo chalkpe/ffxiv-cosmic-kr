@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from 'react'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { Input } from '~/components/ui/input'
 import { prisma } from '~/lib/prisma.server'
-import { worldNames } from '~/lib/constants'
+import { commentCount, worldNames } from '~/lib/constants'
 import { UpdatedAt } from '~/components/updated-at'
 import { World } from '~/generated/prisma/client'
-import { dispatch, type EventPayloadMap } from '~/lib/data.server'
+import { dispatch, getRecentComments, type EventPayloadMap } from '~/lib/data.server'
 import { useFetcher, useRevalidator } from 'react-router'
 import { useEvent } from '~/hooks/use-event'
 import { Toaster } from '~/components/ui/sonner'
@@ -30,11 +30,11 @@ export async function loader({}: Route.LoaderArgs) {
     }
   }
 
-  return { servers }
+  return { servers, recentComments: getRecentComments() }
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { servers } = loaderData
+  const { servers, recentComments } = loaderData
 
   const revalidator = useRevalidator()
   const fetcher = useFetcher<typeof action>()
@@ -54,18 +54,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     }
   }, [fetcher.data?.id])
 
-  const [comments, setComments] = useState<Record<World, EventPayloadMap['ADD_COMMENT'][]>>({
-    KrCarbuncle: [],
-    KrChocobo: [],
-    KrMoogle: [],
-    KrTonberry: [],
-    KrFenrir: [],
-  })
+  const [comments, setComments] = useState<Record<World, EventPayloadMap['ADD_COMMENT'][]>>(recentComments)
 
   const comment = useEvent({ type: 'ADD_COMMENT' })
   useEffect(() => {
     if (comment) {
-      setComments((prev) => ({ ...prev, [comment.world]: [comment, ...prev[comment.world]].slice(0, 16) }))
+      setComments((prev) => ({ ...prev, [comment.world]: [comment, ...prev[comment.world]].slice(0, commentCount) }))
     }
   }, [comment?.id])
 

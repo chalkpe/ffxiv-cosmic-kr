@@ -7,3 +7,5 @@ export const worldNames: Record<World, string> = {
   KrTonberry: '톤베리',
   KrFenrir: '펜리르',
 }
+
+export const commentCount = 16
