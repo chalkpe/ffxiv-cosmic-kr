@@ -1,7 +1,7 @@
 import Queue from 'yocto-queue'
 import { EventEmitter } from 'node:events'
 import { commentCount } from '~/lib/constants'
-import type { World } from '~/generated/prisma/client'
+import type { World } from '~/lib/prisma.server'
 
 export type EventPayloadMap = {
   UPDATE_PROGRESS: { id: string }

@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "build": "prisma generate && react-router build",
+    "start": "prisma db push && react-router-serve ./build/server/index.js"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",

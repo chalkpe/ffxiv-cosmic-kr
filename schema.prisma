@@ -1,11 +1,11 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:../build/sqlite.db"
+  url      = "file:./data.db"
 }
 
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "./prisma"
 }
 
 enum World {

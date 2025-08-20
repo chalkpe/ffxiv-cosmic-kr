@@ -1,4 +1,4 @@
-import type { World } from '~/generated/prisma/enums'
+import type { World } from '~/lib/prisma.server'
 
 export const worldNames: Record<World, string> = {
   KrCarbuncle: '카벙클',

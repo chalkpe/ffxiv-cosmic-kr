@@ -5,4 +5,6 @@
 /.react-router/
 /build/
 
-/app/generated/
+# Prisma
+/prisma/
+/data.db
