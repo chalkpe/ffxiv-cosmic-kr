@@ -212,11 +212,18 @@ export async function action({ request }: Route.ActionArgs) {
     const subprogress = parseInt(s, 10)
     if (isNaN(subprogress) || subprogress < 0 || subprogress > 8) return { id, ok: false }
 
-    await prisma.server.upsert({
+    const server = await prisma.server.upsert({
       where: { world },
       update: { subprogress },
       create: { world, progress: 0, subprogress },
     })
+
+    if (server.subprogress === 8 && server.progress < 20) {
+      await prisma.server.update({
+        where: { world },
+        data: { progress: server.progress + 1, subprogress: 0 },
+      })
+    }
 
     dispatch({ type: 'UPDATE_PROGRESS', payload: { id } })
     return { id, ok: true }
