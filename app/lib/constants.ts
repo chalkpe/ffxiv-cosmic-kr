@@ -8,4 +8,4 @@ export const worldNames: Record<World, string> = {
   KrFenrir: '펜리르',
 }
 
-export const commentCount = 16
+export const commentCount = 64

@@ -1,18 +1,16 @@
 import { randomUUID } from 'node:crypto'
 import type { Route } from './+types/home'
-import { Logo } from '../components/logo/logo'
-import { Progress } from '~/components/server/progress'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ScrollArea } from '~/components/ui/scroll-area'
-import { Input } from '~/components/ui/input'
+import { Logo } from '../components/intro/logo/logo'
+import { useEffect, useRef, useState } from 'react'
 import { prisma, World } from '~/lib/prisma.server'
-import { commentCount, worldNames } from '~/lib/constants'
-import { UpdatedAt } from '~/components/updated-at'
+import { commentCount } from '~/lib/constants'
 import { dispatch, getRecentComments, type EventPayloadMap } from '~/lib/data.server'
 import { useFetcher, useRevalidator, useSearchParams } from 'react-router'
 import { useEvent } from '~/hooks/use-event'
 import { Toaster } from '~/components/ui/sonner'
-import { toast } from 'sonner'
+import { ServerCard } from '~/components/intro/servers/server-card'
+import { CommentCard } from '~/components/comments/comment-card'
+import { frequentlyAskedQuestions } from '~/components/faq/faq'
 
 export async function loader({}: Route.LoaderArgs) {
   const worlds = Object.values(World)
@@ -32,9 +30,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { servers, recentComments } = loaderData
 
   const revalidator = useRevalidator()
-  const fetcher = useFetcher<typeof action>()
-
   const [searchParams] = useSearchParams()
+  const fetcher = useFetcher<typeof action>()
 
   const formRef = useRef<Record<World, HTMLFormElement | null>>({
     KrCarbuncle: null,
@@ -74,98 +71,44 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <Logo updatedAt={servers.reduce((latest, { updatedAt }) => (updatedAt > latest ? updatedAt : latest), new Date(0))} />
         <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-5 justify-center items-center">
           {servers.map((server) => (
-            <article key={server.world} className="p-5 rounded bg-[#0C1826] w-64 flex flex-col gap-8">
-              <div className="flex flex-row justify-between items-start">
-                <h1 className="font-bold text-4xl">{worldNames[server.world]}</h1>
-                <div className="flex flex-col items-end text-right">
-                  <span className="text-[#9496A0] text-xs">수정시간</span>
-                  <UpdatedAt className="text-[#9496A0] text-xs" updatedAt={server.updatedAt} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-4">
-                <Progress
-                  progress={server.progress}
-                  max={20}
-                  disabled={!searchParams.has('secret') || fetcher.state !== 'idle'}
-                  onChange={(v) =>
-                    fetcher.submit({ progress: v.toString(), server: server.world, secret: searchParams.get('secret') }, { method: 'post' })
-                  }
-                >
-                  현재 단계
-                </Progress>
-                <Progress
-                  progress={server.subprogress}
-                  max={8}
-                  disabled={!searchParams.has('secret') || fetcher.state !== 'idle'}
-                  onChange={(v) =>
-                    fetcher.submit(
-                      { subprogress: v.toString(), server: server.world, secret: searchParams.get('secret') },
-                      { method: 'post' },
-                    )
-                  }
-                >
-                  세부 단계
-                </Progress>
-              </div>
-            </article>
+            <ServerCard
+              key={server.world}
+              server={server}
+              disabled={!searchParams.has('secret') || fetcher.state !== 'idle'}
+              onChangeProgress={(v) =>
+                fetcher.submit({ progress: v.toString(), server: server.world, secret: searchParams.get('secret') }, { method: 'post' })
+              }
+              onChangeSubprogress={(v) =>
+                fetcher.submit({ subprogress: v.toString(), server: server.world, secret: searchParams.get('secret') }, { method: 'post' })
+              }
+            />
           ))}
         </section>
       </div>
       <div className="w-full bg-[#0C1826] py-10">
         <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-5 justify-center items-center">
           {servers.map((server) => (
-            <article key={server.world} className="p-5 sm:p-0 rounded w-full sm:w-64 flex flex-col gap-4">
-              <fetcher.Form
-                method="post"
-                ref={(el) => {
-                  formRef.current[server.world] = el
-                }}
-                onSubmit={(e) => {
-                  if (sentAt && new Date().getTime() - sentAt.getTime() < 10000) {
-                    e.preventDefault()
-                    toast.error('10초에 한 번만 댓글을 작성할 수 있어요.')
-                  }
-                }}
-              >
-                <input type="text" name="server" value={server.world} className="hidden" readOnly />
-                <Input
-                  type="text"
-                  name="comment"
-                  className="outline-none placeholder:text-[#C9CBD0]"
-                  placeholder={`${worldNames[server.world]} 댓글 입력...`}
-                  minLength={1}
-                  maxLength={100}
-                  autoComplete="off"
-                />
-                <input type="submit" className="hidden" accessKey="enter" />
-              </fetcher.Form>
-              <ScrollArea className="h-72">
-                <div className="flex flex-col">
-                  {comments[server.world].map((comment) => (
-                    <div key={comment.id} className="not-last:border-b-2 border-background py-2 text-[#C9CBD0] break-all">
-                      {comment.text}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+            <CommentCard key={server.world} fetcher={fetcher} server={server} comments={comments} formRef={formRef} sentAt={sentAt} />
+          ))}
+        </section>
+      </div>
+      <div className="w-full py-10 flex flex-col justify-center items-center gap-10">
+        <h1 className="text-4xl font-bold">FAQ</h1>
+        <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-10 justify-center items-start">
+          {frequentlyAskedQuestions.map((faq) => (
+            <article key={faq.question} className="p-5 sm:p-0 rounded w-full sm:w-64 flex flex-col gap-4">
+              <nav className="flex flex-row justify-between items-center">
+                <h2 className="text-xl font-bold">{faq.question}</h2>
+                {faq.details}
+              </nav>
+              <div className="break-keep">{faq.answer}</div>
             </article>
           ))}
         </section>
       </div>
-      <footer className="w-full px-5 py-10">
+      <footer className="w-full px-5 py-10 bg-[#0C1826]">
         <section className="mx-auto container flex flex-col justify-center items-center text-center gap-2 text-[#9496A0] text-lg text-balance break-keep">
           <span>이 프로젝트는 스퀘어 에닉스와 아무런 관련이 없습니다.</span>
-          <span>
-            문의 및 버그 제보는{' '}
-            <a href="https://github.com/chalkpe" className="font-bold underline">
-              깃허브
-            </a>{' '}
-            또는{' '}
-            <a href="https://chalk.moe/@chalk" className="font-bold underline">
-              마스토돈
-            </a>
-            으로 연락해주세요.
-          </span>
         </section>
       </footer>
     </main>
