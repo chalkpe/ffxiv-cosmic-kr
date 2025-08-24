@@ -19,8 +19,21 @@ enum World {
 model Server {
   world World @id
 
-  progress    Int
-  subprogress Int
+  progress    Int      @default(0)
+  subprogress Int      @default(0)
+  updatedAt   DateTime @updatedAt
 
-  updatedAt DateTime @updatedAt
+  comments Comment[]
+}
+
+model Comment {
+  id String @id @default(uuid())
+
+  world  World
+  server Server @relation(fields: [world], references: [world])
+
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([world, createdAt])
 }

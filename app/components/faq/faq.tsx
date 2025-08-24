@@ -1,5 +1,6 @@
+import ReactGA from 'react-ga4'
 import { ExternalLinkIcon } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Button } from '~/components/ui/button'
 
 import desc1 from './desc_1.png'
 import desc2 from './desc_2.png'
@@ -32,7 +33,12 @@ export const frequentlyAskedQuestions = [
       </p>
     ),
     details: (
-      <Button onClick={() => window.open(desc1)}>
+      <Button
+        onClick={() => {
+          ReactGA.event({ category: 'FAQ', action: '자세히', label: '진척도가 달라요' })
+          window.open(desc1)
+        }}
+      >
         <ExternalLinkIcon /> 자세히
       </Button>
     ),
@@ -45,7 +51,12 @@ export const frequentlyAskedQuestions = [
       </p>
     ),
     details: (
-      <Button onClick={() => window.open(desc2)}>
+      <Button
+        onClick={() => {
+          ReactGA.event({ category: 'FAQ', action: '자세히', label: '뭘 보면 되나요?' })
+          window.open(desc2)
+        }}
+      >
         <ExternalLinkIcon /> 자세히
       </Button>
     ),
@@ -56,11 +67,23 @@ export const frequentlyAskedQuestions = [
       <p className="flex flex-col gap-2">
         <span>
           문의 및 버그 제보는 상단 채팅,{' '}
-          <a href="https://github.com/chalkpe" className="font-bold underline">
+          <a
+            className="font-bold underline"
+            href="https://github.com/chalkpe/ffxiv-cosmic-kr/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => ReactGA.event({ category: 'FAQ', action: '링크', label: '깃허브' })}
+          >
             깃허브
           </a>{' '}
           또는{' '}
-          <a href="https://chalk.moe/@chalk" className="font-bold underline">
+          <a
+            className="font-bold underline"
+            href="https://chalk.moe/@chalk"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => ReactGA.event({ category: 'FAQ', action: '링크', label: '마스토돈' })}
+          >
             마스토돈
           </a>
           으로 연락해 주세요.

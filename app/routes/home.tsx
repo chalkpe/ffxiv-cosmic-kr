@@ -1,59 +1,55 @@
 import { randomUUID } from 'node:crypto'
 import type { Route } from './+types/home'
 import { Logo } from '../components/intro/logo/logo'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { prisma, World } from '~/lib/prisma.server'
 import { commentCount } from '~/lib/constants'
-import { dispatch, getRecentComments, type EventPayloadMap } from '~/lib/data.server'
+import { dispatch } from '~/lib/data.server'
 import { useFetcher, useRevalidator, useSearchParams } from 'react-router'
 import { useEvent } from '~/hooks/use-event'
 import { Toaster } from '~/components/ui/sonner'
 import { ServerCard } from '~/components/intro/servers/server-card'
 import { CommentCard } from '~/components/comments/comment-card'
 import { frequentlyAskedQuestions } from '~/components/faq/faq'
+import ReactGA from 'react-ga4'
 
 export async function loader({}: Route.LoaderArgs) {
   const worlds = Object.values(World)
-  const servers = await prisma.server.findMany()
+  const servers = await prisma.server.findMany({
+    select: {
+      world: true,
+      progress: true,
+      subprogress: true,
+      updatedAt: true,
+      comments: { orderBy: { createdAt: 'desc' }, take: commentCount },
+    },
+  })
 
   if (servers.length < worlds.length) {
     for (const world of worlds) {
-      if (servers.some((s) => s.world === world)) continue
-      servers.push({ world, progress: 0, subprogress: 0, updatedAt: new Date(0) })
+      if (servers.find((s) => s.world === world)) continue
+      const server = await prisma.server.create({ data: { world, updatedAt: new Date(0) } })
+      servers.push({ ...server, comments: [] })
     }
   }
 
-  return { servers, recentComments: getRecentComments() }
+  return { servers }
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { servers, recentComments } = loaderData
-
+  const { servers } = loaderData
+  const fetcher = useFetcher<typeof action>()
   const revalidator = useRevalidator()
   const [searchParams] = useSearchParams()
-  const fetcher = useFetcher<typeof action>()
 
-  const formRef = useRef<Record<World, HTMLFormElement | null>>({
-    KrCarbuncle: null,
-    KrChocobo: null,
-    KrMoogle: null,
-    KrTonberry: null,
-    KrFenrir: null,
-  })
-  const [sentAt, setSentAt] = useState<Date | null>(null)
   useEffect(() => {
-    if (fetcher.data?.ok && fetcher.data?.world) {
-      setSentAt(new Date())
-      formRef.current[fetcher.data.world]?.reset()
-    }
-  }, [fetcher.data?.id])
-
-  const [comments, setComments] = useState<Record<World, EventPayloadMap['ADD_COMMENT'][]>>(recentComments)
+    ReactGA.initialize('G-CQZC3CPN2P')
+  }, [])
 
   const comment = useEvent({ type: 'ADD_COMMENT' })
   useEffect(() => {
-    if (comment) {
-      setComments((prev) => ({ ...prev, [comment.world]: [comment, ...prev[comment.world]].slice(0, commentCount) }))
+    if (comment && revalidator.state === 'idle') {
+      revalidator.revalidate()
     }
   }, [comment?.id])
 
@@ -88,7 +84,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <div className="w-full bg-[#0C1826] py-10">
         <section className="mx-auto container flex flex-col sm:flex-row flex-wrap gap-5 justify-center items-center">
           {servers.map((server) => (
-            <CommentCard key={server.world} fetcher={fetcher} server={server} comments={comments} formRef={formRef} sentAt={sentAt} />
+            <CommentCard key={server.world} server={server} />
           ))}
         </section>
       </div>
@@ -124,17 +120,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const world = Object.values(World).find((w) => w === server)
   if (!world) return { id, ok: false }
-
-  if (formData.has('comment')) {
-    const comment = formData.get('comment')?.toString()
-    if (!comment) return { id, ok: false }
-
-    const text = comment.trim()
-    if (text.length <= 0 || text.length > 100) return { id, ok: false }
-
-    dispatch({ type: 'ADD_COMMENT', payload: { id, world, text } })
-    return { id, ok: true, world }
-  }
 
   if (formData.has('progress')) {
     if (formData.get('secret')?.toString() !== process.env.ADMIN_SECRET) return { id, ok: false }
