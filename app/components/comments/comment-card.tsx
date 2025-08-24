@@ -86,7 +86,8 @@ export const CommentCard = ({ server }: CommentCardProps) => {
           )}
           {server.comments.map((comment) => (
             <div key={comment.id} className="not-last:border-b-2 border-background py-2 text-[#C9CBD0] break-all">
-              <span className="opacity-50">{format(new Date(comment.createdAt), 'HH:mm', { locale })}</span> <span>{comment.content}</span>
+              <span className="select-none opacity-50">{format(new Date(comment.createdAt), 'HH:mm', { locale })} </span>
+              <span>{comment.content}</span>
             </div>
           ))}
         </div>
